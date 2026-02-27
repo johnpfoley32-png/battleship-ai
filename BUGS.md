@@ -41,6 +41,46 @@
 - **How verified**
   - Fired a single shot and observed exactly one subsequent AI shot occurs, after which the turn returns to `you` (unless the game ended).
 
+## 6) AI turn failure causes game lock
+- **Symptom**
+  - If `takeAiTurn()` fails for any reason (e.g. no available shots), the turn remains `'enemy'` and the player can never fire again — the game is stuck.
+- **Cause**
+  - In `gameReducer`, the `play/fire` case only updated `next` when `ai.ok` was true. When false, `next` kept `turn: 'enemy'` from the player's shot result, permanently locking the UI.
+- **Fix**
+  - Added an `else` branch: when `takeAiTurn()` fails, reset `next.turn` to `'you'` so the player can continue.
+- **How verified**
+  - Code review confirmed the fallback path; tests still pass.
+
+## 7) Hit/miss/sunk messages are ambiguous between player and AI
+- **Symptom**
+  - Both the player's and AI's shots produce identical messages ("Hit!", "Miss.", "Sunk!"), so the player cannot tell whose shot produced a given message.
+- **Cause**
+  - `fireAt()` used the same text strings regardless of the `attacker` argument.
+- **Fix**
+  - Messages now include a label: `"You: Hit!"` / `"Enemy: Hit!"`, `"You: Miss."` / `"Enemy: Miss."`, and `"You: Sunk a ship!"` / `"Enemy: Sunk a ship!"`.
+- **How verified**
+  - Manual browser testing confirmed distinct labels appear for player vs AI actions.
+
+## 8) Game over status text does not indicate winner
+- **Symptom**
+  - When the game ends, the status bar shows a generic "Game over." regardless of who won or lost.
+- **Cause**
+  - The `statusText` memo in `App.tsx` had a single fallback string for the `game_over` phase.
+- **Fix**
+  - Status now reads `"Game over — You win!"` or `"Game over — You lose."` based on `state.turn`.
+- **How verified**
+  - Code review confirmed the conditional; the `turn` field retains the winner at game end.
+
+## 9) Messages accumulate unboundedly across turns
+- **Symptom**
+  - The internal `messages` array grows with every shot taken throughout the entire game. Old messages from many turns ago persist in state.
+- **Cause**
+  - The `clearMessages` action existed but was never dispatched. Each `fireAt()` call appended to the existing array.
+- **Fix**
+  - The `play/fire` reducer case now calls `clearMessages(state)` before passing the state to `fireAt()`, so only the current round's messages are shown.
+- **How verified**
+  - Manual testing confirmed that after each shot pair, only the current round's messages appear.
+
 ## 5) TypeScript unreachable check in AI turn logic
 - **Symptom**
   - TypeScript error: comparison appeared unintentional between `'play'` and `'game_over'`.

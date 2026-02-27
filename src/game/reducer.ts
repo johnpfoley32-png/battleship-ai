@@ -62,16 +62,21 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
     case 'play/fire': {
       if (state.phase !== 'play') return state
 
-      const fired = fireAt(state, 'you', action.payload.target)
+      const cleared = clearMessages(state)
+      const fired = fireAt(cleared, 'you', action.payload.target)
       if (!fired.ok) {
-        return pushMessage(state, { kind: 'error', text: fired.error })
+        return pushMessage(cleared, { kind: 'error', text: fired.error })
       }
 
       let next = fired.value.nextState
 
       if (next.phase === 'play' && next.turn === 'enemy') {
         const ai = takeAiTurn(next)
-        if (ai.ok) next = ai.value
+        if (ai.ok) {
+          next = ai.value
+        } else {
+          next = { ...next, turn: 'you' }
+        }
       }
 
       return next
