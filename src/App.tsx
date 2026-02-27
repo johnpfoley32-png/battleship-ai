@@ -25,7 +25,7 @@ function App() {
     if (state.phase === 'play') {
       return state.turn === 'you' ? 'Play: your turn.' : 'Play: enemy turn.'
     }
-    return 'Game over.'
+    return state.turn === 'you' ? 'Game over — You win!' : 'Game over — You lose.'
   }, [nextShipId, nextShipLength, state.orientation, state.phase, state.turn])
 
   const onRotate = () => {

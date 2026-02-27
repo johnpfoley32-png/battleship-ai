@@ -261,6 +261,8 @@ export const fireAt = (state: GameState, attacker: PlayerId, target: Coord): Res
   let result: FireOutcome['result'] = isHit ? 'hit' : 'miss'
   let hitShipId: ShipId | null = cell.occupant
 
+  const label = attacker === 'you' ? 'You' : 'Enemy'
+
   if (isHit && cell.occupant) {
     const currentHits = getShipCellsHitCount(defSide.fleet, cell.occupant)
     const updatedHits = currentHits + 1
@@ -269,11 +271,11 @@ export const fireAt = (state: GameState, attacker: PlayerId, target: Coord): Res
       hitsByShipId: { ...defSide.fleet.hitsByShipId, [cell.occupant]: updatedHits },
     }
 
-    msgState = pushMessage(msgState, message('hit', 'Hit!'))
+    msgState = pushMessage(msgState, message('hit', `${label}: Hit!`))
 
     if (isShipSunk(nextDefFleet, cell.occupant)) {
       result = 'sunk'
-      msgState = pushMessage(msgState, message('sunk', 'Sunk!'))
+      msgState = pushMessage(msgState, message('sunk', `${label}: Sunk a ship!`))
 
       if (areAllShipsSunk(nextDefFleet)) {
         result = 'win'
@@ -284,7 +286,7 @@ export const fireAt = (state: GameState, attacker: PlayerId, target: Coord): Res
       }
     }
   } else {
-    msgState = pushMessage(msgState, message('miss', 'Miss.'))
+    msgState = pushMessage(msgState, message('miss', `${label}: Miss.`))
   }
 
   const phase: GamePhase = result === 'win' ? 'game_over' : msgState.phase
