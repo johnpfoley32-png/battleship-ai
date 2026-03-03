@@ -90,6 +90,10 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
       return createInitialState()
     }
 
+    case 'game/setLevel': {
+      return { ...state, level: action.payload.level }
+    }
+
     default: {
       return state
     }

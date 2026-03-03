@@ -64,6 +64,7 @@ export type GameMessage = Readonly<{
 
 export type AiMemory = Readonly<{
   attemptedShots: ReadonlyArray<Coord>
+  pendingHits: ReadonlyArray<Coord>
 }>
 
 export type GameState = Readonly<{
@@ -80,4 +81,5 @@ export type GameState = Readonly<{
   }>
   ai: AiMemory
   messages: ReadonlyArray<GameMessage>
+  level: 1 | 2 | 3
 }>

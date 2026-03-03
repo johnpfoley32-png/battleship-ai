@@ -68,8 +68,9 @@ export const createInitialState = (): GameState => {
       board: createEmptyBoard(),
       fleet: createFleet(enemySpecs),
     },
-    ai: { attemptedShots: [] },
+    ai: { attemptedShots: [], pendingHits: [] },
     messages: [],
+    level: 1,
   }
 }
 
@@ -363,22 +364,82 @@ export const chooseRandomUnshotCoord = (
 export const applyAiMemoryShot = (ai: AiMemory, coord: Coord): AiMemory => {
   const existing = new Set(ai.attemptedShots.map(coordKey))
   if (existing.has(coordKey(coord))) return ai
-  return { attemptedShots: [...ai.attemptedShots, coord] }
+  return { ...ai, attemptedShots: [...ai.attemptedShots, coord] }
+}
+
+// Level 1: pure random (existing behavior)
+function chooseLevel1(state: GameState, rng: () => number = Math.random): Coord | null {
+  return chooseRandomUnshotCoord(state.you.board, rng)
+}
+
+// Level 2: if there are pending hits, try adjacent cells; else random
+function chooseLevel2(state: GameState, rng: () => number = Math.random): Coord | null {
+  const { pendingHits } = state.ai
+  if (pendingHits && pendingHits.length > 0) {
+    const lastHit = pendingHits[pendingHits.length - 1]
+    const adjacent = [
+      { row: lastHit.row - 1, col: lastHit.col },
+      { row: lastHit.row + 1, col: lastHit.col },
+      { row: lastHit.row, col: lastHit.col - 1 },
+      { row: lastHit.row, col: lastHit.col + 1 },
+    ].filter(c => inBounds(c) && state.you.board[c.row][c.col].shot === 'unknown')
+    if (adjacent.length > 0) return adjacent[0]
+  }
+  return chooseRandomUnshotCoord(state.you.board, rng)
+}
+
+// Level 3: infer axis from 2+ aligned hits, shoot along that axis; fallback to Level 2
+function chooseLevel3(state: GameState, rng: () => number = Math.random): Coord | null {
+  const { pendingHits } = state.ai
+  if (pendingHits && pendingHits.length >= 2) {
+    const sameRow = pendingHits.every(h => h.row === pendingHits[0].row)
+    const sameCol = pendingHits.every(h => h.col === pendingHits[0].col)
+    if (sameRow) {
+      const cols = pendingHits.map(h => h.col).sort((a, b) => a - b)
+      const candidates = [
+        { row: pendingHits[0].row, col: cols[0] - 1 },
+        { row: pendingHits[0].row, col: cols[cols.length - 1] + 1 },
+      ].filter(c => inBounds(c) && state.you.board[c.row][c.col].shot === 'unknown')
+      if (candidates.length > 0) return candidates[0]
+    } else if (sameCol) {
+      const rows = pendingHits.map(h => h.row).sort((a, b) => a - b)
+      const candidates = [
+        { row: rows[0] - 1, col: pendingHits[0].col },
+        { row: rows[rows.length - 1] + 1, col: pendingHits[0].col },
+      ].filter(c => inBounds(c) && state.you.board[c.row][c.col].shot === 'unknown')
+      if (candidates.length > 0) return candidates[0]
+    }
+  }
+  return chooseLevel2(state, rng)
 }
 
 export const takeAiTurn = (state: GameState, rng: () => number = Math.random): Result<GameState> => {
   if (state.phase !== 'play') return { ok: false, error: 'Not in play phase.' }
   if (state.turn !== 'enemy') return { ok: false, error: 'Not AI turn.' }
 
-  const coord = chooseRandomUnshotCoord(state.you.board, rng)
+  const coord =
+    state.level === 3 ? chooseLevel3(state, rng) :
+    state.level === 2 ? chooseLevel2(state, rng) :
+    chooseLevel1(state, rng)
+
   if (!coord) return { ok: false, error: 'No available shots.' }
 
   const fired = fireAt(state, 'enemy', coord)
   if (!fired.ok) return fired
 
+  const outcome = fired.value
+  const result = outcome.outcome.result
+
+  let updatedAi = applyAiMemoryShot(outcome.nextState.ai, coord)
+  if (result === 'hit') {
+    updatedAi = { ...updatedAi, pendingHits: [...updatedAi.pendingHits, coord] }
+  } else if (result === 'sunk' || result === 'win') {
+    updatedAi = { ...updatedAi, pendingHits: [] }
+  }
+
   const nextState = {
-    ...fired.value.nextState,
-    ai: applyAiMemoryShot(fired.value.nextState.ai, coord),
+    ...outcome.nextState,
+    ai: updatedAi,
   }
 
   return { ok: true, value: nextState }

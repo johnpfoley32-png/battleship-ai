@@ -30,9 +30,17 @@ export type GameClearMessagesAction = Readonly<{
   type: 'game/clearMessages'
 }>
 
+export type GameSetLevelAction = Readonly<{
+  type: 'game/setLevel'
+  payload: {
+    level: 1 | 2 | 3
+  }
+}>
+
 export type GameAction =
   | SetupPlaceShipAction
   | SetupRotateAction
   | PlayFireAction
   | GameRestartAction
   | GameClearMessagesAction
+  | GameSetLevelAction

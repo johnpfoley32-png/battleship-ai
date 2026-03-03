@@ -71,6 +71,20 @@ function App() {
           <button type="button" onClick={onRestart}>
             Restart
           </button>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <span style={{ fontSize: 14 }}>AI Level:</span>
+            {([1, 2, 3] as const).map(lvl => (
+              <button
+                key={lvl}
+                type="button"
+                disabled={state.phase !== 'setup'}
+                style={{ fontWeight: state.level === lvl ? 'bold' : 'normal' }}
+                onClick={() => dispatch({ type: 'game/setLevel', payload: { level: lvl } })}
+              >
+                {lvl}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 
