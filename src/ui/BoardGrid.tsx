@@ -13,10 +13,10 @@ const cellColor = (opts: {
   hasShip: boolean
   revealShips: boolean
 }) => {
-  if (opts.shot === 'hit') return '#dc2626'
-  if (opts.shot === 'miss') return '#3b82f6'
-  if (opts.revealShips && opts.hasShip) return '#6b7280'
-  return '#111827'
+  if (opts.shot === 'hit') return 'var(--cell-hit)'
+  if (opts.shot === 'miss') return 'var(--cell-miss)'
+  if (opts.revealShips && opts.hasShip) return 'var(--bg-cell-ship)'
+  return 'var(--bg-cell)'
 }
 
 export function BoardGridView({
@@ -56,7 +56,7 @@ export function BoardGridView({
                   height: 28,
                   padding: 0,
                   borderRadius: 6,
-                  border: '1px solid rgba(255,255,255,0.12)',
+                  border: '1px solid var(--border-subtle)',
                   background: bg,
                   cursor: isClickable ? 'pointer' : 'default',
                   opacity: isClickable ? 1 : 0.9,

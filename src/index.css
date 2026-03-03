@@ -3,14 +3,41 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Dark theme (default) */
+  --bg-primary: #242424;
+  --bg-cell: #111827;
+  --bg-cell-ship: #6b7280;
+  --bg-message-box: #0b1020;
+  --text-primary: rgba(255, 255, 255, 0.87);
+  --text-secondary: #9ca3af;
+  --border-subtle: rgba(255, 255, 255, 0.12);
+  --btn-bg: #1a1a1a;
+  --cell-hit: #dc2626;
+  --cell-miss: #3b82f6;
+  color-scheme: dark;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+}
+
+.light {
+  --bg-primary: #ffffff;
+  --bg-cell: #cbd5e1;
+  --bg-cell-ship: #94a3b8;
+  --bg-message-box: #f1f5f9;
+  --text-primary: #213547;
+  --text-secondary: #64748b;
+  --border-subtle: rgba(0, 0, 0, 0.15);
+  --btn-bg: #f9f9f9;
+  --cell-hit: #dc2626;
+  --cell-miss: #3b82f6;
+  color-scheme: light;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
 }
 
 a {
@@ -42,7 +69,8 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--btn-bg);
+  color: var(--text-primary);
   cursor: pointer;
   transition: border-color 0.25s;
 }
@@ -52,17 +80,4 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
 }
