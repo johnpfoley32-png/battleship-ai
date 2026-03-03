@@ -1,5 +1,5 @@
 import './App.css'
-import { useMemo, useReducer } from 'react'
+import { useEffect, useMemo, useReducer, useState } from 'react'
 import {
   BOARD_SIZE,
   gameReducer,
@@ -12,6 +12,11 @@ import { BoardGridView, MessageList } from './ui'
 
 function App() {
   const [state, dispatch] = useReducer(gameReducer, undefined, initialGameState)
+  const [dark, setDark] = useState(true)
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('light', !dark)
+  }, [dark])
 
   const nextShipId = getNextUnplacedShipId(state.you.fleet)
   const nextShipLength = nextShipId ? getShipLength(state.you.fleet, nextShipId) : null
@@ -62,7 +67,7 @@ function App() {
     >
       <header style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <h1 style={{ margin: 0, fontSize: 22 }}>Battleship</h1>
-        <div style={{ color: '#9ca3af', fontSize: 14 }}>{statusText}</div>
+        <div style={{ color: 'var(--text-secondary)', fontSize: 14 }}>{statusText}</div>
 
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button type="button" onClick={onRotate} disabled={state.phase !== 'setup'}>
@@ -71,6 +76,23 @@ function App() {
           <button type="button" onClick={onRestart}>
             Restart
           </button>
+          <button type="button" onClick={() => setDark(d => !d)}>
+            {dark ? 'Light Mode' : 'Dark Mode'}
+          </button>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <span style={{ fontSize: 14 }}>AI Level:</span>
+            {([1, 2, 3] as const).map(lvl => (
+              <button
+                key={lvl}
+                type="button"
+                disabled={state.phase !== 'setup'}
+                style={{ fontWeight: state.level === lvl ? 'bold' : 'normal' }}
+                onClick={() => dispatch({ type: 'game/setLevel', payload: { level: lvl } })}
+              >
+                {lvl}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 
@@ -101,7 +123,7 @@ function App() {
 
       <MessageList messages={state.messages} />
 
-      <footer style={{ color: '#9ca3af', fontSize: 12 }}>
+      <footer style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
         Board size: {BOARD_SIZE}x{BOARD_SIZE}
       </footer>
     </div>

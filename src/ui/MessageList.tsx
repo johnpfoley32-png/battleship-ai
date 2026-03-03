@@ -26,12 +26,12 @@ export function MessageList({ messages }: MessageListProps) {
           minHeight: 80,
           padding: 10,
           borderRadius: 10,
-          border: '1px solid rgba(255,255,255,0.12)',
-          background: '#0b1020',
+          border: '1px solid var(--border-subtle)',
+          background: 'var(--bg-message-box)',
         }}
       >
         {messages.length === 0 ? (
-          <div style={{ color: '#9ca3af', fontSize: 13 }}>No messages yet.</div>
+          <div style={{ color: 'var(--text-secondary)', fontSize: 13 }}>No messages yet.</div>
         ) : (
           messages.slice(-8).map((m, idx) => (
             <div
