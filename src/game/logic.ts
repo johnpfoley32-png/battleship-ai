@@ -434,7 +434,10 @@ export const takeAiTurn = (state: GameState, rng: () => number = Math.random): R
   if (result === 'hit') {
     updatedAi = { ...updatedAi, pendingHits: [...updatedAi.pendingHits, coord] }
   } else if (result === 'sunk' || result === 'win') {
-    updatedAi = { ...updatedAi, pendingHits: [] }
+    const sunkId = outcome.outcome.hitShipId
+    const sunkPlacement = outcome.nextState.you.fleet.placements.find(p => p.shipId === sunkId)
+    const sunkCoordKeys = new Set((sunkPlacement?.coords ?? []).map(c => `${c.row},${c.col}`))
+    updatedAi = { ...updatedAi, pendingHits: updatedAi.pendingHits.filter(c => !sunkCoordKeys.has(`${c.row},${c.col}`)) }
   }
 
   const nextState = {
